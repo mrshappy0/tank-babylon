@@ -166,11 +166,10 @@ var createScene = function () {
   // scene.activeCamera = followCamera;
   // createSky(scene);
   createLights(scene);
-  // createBadOrb(scene);
-  // createGoodOrb(scene);
+  createBadOrb(scene);
+  createGoodOrb(scene, -17, 10, 30);
   // createHeroDude(scene);
-  // createCylinder(scene);
-  // createRingSystem(scene);
+  createRingSystem(scene);
   return scene;
 };
 
@@ -307,33 +306,30 @@ function createBadOrb(scene) {
   );
 }
 
-// function createTenOrbs(scene){
-//   while(i < 11){
-//     createGoodOrb(scene, -17, 10, 30);
-
-//   }
-// }
-
-// function createGoodOrb(scene, x, y, z) {
-//   var i = 0;
-//   while (i < 11) {
-
-    // BABYLON.SceneLoader.ImportMesh("", "./", "goodOrbTho.glb", scene, function (
-    //   meshes,
-    //   particleSystems,
-    //   skeletons
-    // ) {
-    //   // -17, 10, 30
-    //   meshes[0].scaling = new BABYLON.Vector3(-0.055, 0.055, 0.055);
-    //   // meshes[0].position = new BABYLON.Vector3(x, y, z);
-    // });
-
-//     x += 4;
-//     y += 4;
-//     z += 4;
-//     i++;
-//   }
-// }
+function createGoodOrb(scene, x, y, z) {
+  var i = 0;
+  var orbArray = [];
+  while (i < 11) {
+    BABYLON.SceneLoader.ImportMesh("", "./", "goodOrbTho.glb", scene, function (
+      meshes,
+      particleSystems,
+      skeletons
+    ) {
+      // -17, 10, 30
+      meshes[0].scaling = new BABYLON.Vector3(-0.055, 0.055, 0.055);
+      meshes[0].position.x = x;
+      meshes[0].position.y = y;
+      meshes[0].position.z += z;
+      orbArray.push(meshes[0]);
+    });
+    i++;
+  }
+  console.log(orbArray.position.z);
+  // orbArray.forEach((orb, i) => {
+  //   orb.position.z += i;
+  // });
+  return orbArray;
+}
 
 function createRingSystem(scene) {
   BABYLON.SceneLoader.ImportMesh(
