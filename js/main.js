@@ -50,7 +50,7 @@ class Dude {
     bounder.scaling.y = lengthY * this.scaling;
     bounder.scaling.z = lengthZ * this.scaling;
 
-    bounder.isVisible = false;
+    bounder.isVisible = true;
     var bounderMaterial = new BABYLON.StandardMaterial(
       "bounderMaterial",
       this.scene
@@ -142,7 +142,7 @@ function startGame() {
   scene = createScene();
   // modifySettings();
   var tank = scene.getMeshByName("heroTank");
-  var toRender = function() {
+  var toRender = function () {
     tank.move();
     tank.fireCannonBalls();
     tank.fireLaserBeams();
@@ -153,7 +153,7 @@ function startGame() {
   engine.runRenderLoop(toRender);
 }
 
-var createScene = function() {
+var createScene = function () {
   var scene = new BABYLON.Scene(engine);
   var physicsPlugin = new BABYLON.CannonJSPlugin();
   var gravityVector = new BABYLON.Vector3(0, -9.81, 0);
@@ -162,16 +162,18 @@ var createScene = function() {
   var freeCamera = createUniversalCamera(scene);
   var tank = createTank(scene);
   var followCamera = createFollowCamera(scene, tank);
+  // scene.activeCamera = freeCamera;
   scene.activeCamera = followCamera;
   createLights(scene);
-  createHeroDude(scene);
+  // createHeroDude(scene);
+  createCylinder(scene);
   return scene;
 };
 
 function CreateGround(scene) {
   var ground = new BABYLON.Mesh.CreateGroundFromHeightMap(
     "ground",
-    "images/hmap1.png",
+    "images/maze.png",
     500,
     500,
     100,
@@ -218,7 +220,7 @@ function createFollowCamera(scene, target) {
     target.position,
     scene,
     target
-  );
+    );
   camera.radius = 20; // how far from the object to follow
   camera.heightOffset = 4; // how high above object to place camera
   camera.rotationOffset = 180; //the viewing angle
@@ -254,6 +256,29 @@ function createUniversalCamera(scene) {
   return camera;
 }
 
+function createCylinder(scene) {
+  BABYLON.SceneLoader.ImportMesh("", "./", "thickCylinder.glb", scene, function (meshes, particleSystems, skeletons) {
+    // do something with th
+    meshes[0].position = new BABYLON.Vector3(1, 2, 37)
+    meshes[0].scaling = new BABYLON.Vector3(15, 15, 15)
+    console.log(meshes[0].position)
+  });
+  
+  var m = BABYLON.MeshBuilder.CreateBox("bounds", {height: 20, width: 8, depth: 13}, scene);
+  // m.scaling.copyFrom(size);
+  m.position = new BABYLON.Vector3(14, 2, 36);
+  // m.visibility = 0.5;
+  m.checkCollisions = true;
+  m.visibility = false
+
+  var m = BABYLON.MeshBuilder.CreateBox("bounds", {height: 20, width: 8, depth: 13}, scene);
+  // m.scaling.copyFrom(size);
+  m.position = new BABYLON.Vector3(-12, 2, 36);
+  // m.visibility = 0.5;
+  m.checkCollisions = true;
+  m.visibility = false
+}
+
 function createHeroDude(scene) {
   BABYLON.SceneLoader.ImportMesh(
     "him",
@@ -263,7 +288,7 @@ function createHeroDude(scene) {
     onDudeImported
   );
   function onDudeImported(newMeshes, particleSystems, skeletons) {
-    newMeshes[0].position = new BABYLON.Vector3(0, 0, 5); // The original dude
+    newMeshes[0].position = new BABYLON.Vector3(50, 0, 0); // The original dude
     newMeshes[0].name = "heroDude";
     var heroDude = newMeshes[0];
     for (var i = 1; i < heroDude.getChildren().length; i++) {
@@ -274,7 +299,7 @@ function createHeroDude(scene) {
       // console.log(heroDude.getChildren()[i].name);
     }
     // heroDude.scaling = new BABYLON.Vector3(0.2, 0.2, 0.2);
-    heroDude.speed = 1;
+    heroDude.speed = 0.1;
     scene.beginAnimation(skeletons[0], 0, 120, true, 1.0);
     var hero = new Dude(heroDude, 2, -1, scene, 0.2);
     scene.dudes = [];
@@ -323,7 +348,7 @@ function doClone(original, skeletons, id) {
 }
 
 function modifySettings() {
-  scene.onPointerDown = function() {
+  scene.onPointerDown = function () {
     canvas.requestPointerLock();
   };
 }
@@ -339,13 +364,15 @@ function createTank() {
   tankMaterial.emissiveColor = new BABYLON.Color3.Blue();
   tank.material = tankMaterial;
   tank.position.y += 2;
-  tank.position.z += 2;
+  tank.position.z += -20;
+  console.log(tank.position)
   tank.speed = 3;
   tank.frontVector = new BABYLON.Vector3(0, 0, 1);
   tank.canFireCannonBalls = true;
   tank.canFireLaser = true;
   // tank.isPickable = false;
-  tank.move = function() {
+  tank.move = function () {
+    // console.log(tank.position)
     if (isWPressed) {
       if (tank.position.y > 2) {
         tank.moveWithCollisions(new BABYLON.Vector3(0, -1, 0));
@@ -386,14 +413,13 @@ function createTank() {
     }
   };
 
-  tank.fireCannonBalls = function() {
+  tank.fireCannonBalls = function () {
     var tank = this;
     if (!isBPressed) return;
     if (!tank.canFireCannonBalls) return;
-    console.log("thing");
     tank.canFireCannonBalls = false;
 
-    setTimeout(function() {
+    setTimeout(function () {
       tank.canFireCannonBalls = true;
     }, 500);
 
@@ -426,12 +452,12 @@ function createTank() {
     );
     cannonBall.actionManager = new BABYLON.ActionManager(scene);
 
-    scene.dudes.forEach(dude => {
+    scene.dudes.forEach((dude) => {
       cannonBall.actionManager.registerAction(
         new BABYLON.ExecuteCodeAction(
           {
             trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger,
-            parameter: dude.Dude.bounder
+            parameter: dude.Dude.bounder,
           },
           () => {
             dude.Dude.bounder.dispose();
@@ -441,19 +467,18 @@ function createTank() {
       );
     });
 
-    setTimeout(function() {
+    setTimeout(function () {
       cannonBall.dispose();
     }, 3000);
   };
 
-  tank.fireLaserBeams = function() {
+  tank.fireLaserBeams = function () {
     var tank = this;
     if (!isRPressed) return;
     if (!tank.canFireLaser) return;
-    console.log("hit");
     tank.canFireLaser = false;
 
-    setTimeout(function() {
+    setTimeout(function () {
       tank.canFireLaser = true;
     }, 500);
 
@@ -468,11 +493,11 @@ function createTank() {
     var rayHelper = new BABYLON.RayHelper(ray);
     rayHelper.show(scene, new BABYLON.Color3.Red());
 
-    setTimeout(function() {
+    setTimeout(function () {
       rayHelper.hide(ray);
     }, 200);
 
-    var pickInfos = scene.multiPickWithRay(ray, mesh => {
+    var pickInfos = scene.multiPickWithRay(ray, (mesh) => {
       //use multiPick instead of pickWithRay to pick everything it hits instead of closest
       // this requires you to loop through everything it hits
       if (mesh.name == "heroTank") {
@@ -499,7 +524,7 @@ function createTank() {
 
   return tank;
 }
-document.addEventListener("keydown", function() {
+document.addEventListener("keydown", function () {
   if (event.key == "w" || event.key == "W") {
     isWPressed = true;
   }
@@ -520,7 +545,7 @@ document.addEventListener("keydown", function() {
   }
 });
 
-document.addEventListener("keyup", function() {
+document.addEventListener("keyup", function () {
   if (event.key == "w" || event.key == "W") {
     isWPressed = false;
   }
@@ -557,6 +582,6 @@ function moveOtherDudes() {
 }
 
 // Resize
-window.addEventListener("resize", function(camera) {
+window.addEventListener("resize", function (camera) {
   engine.resize();
 });
