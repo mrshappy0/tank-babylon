@@ -162,23 +162,40 @@ var createScene = function () {
   var freeCamera = createUniversalCamera(scene);
   var tank = createTank(scene);
   var followCamera = createFollowCamera(scene, tank);
-  // scene.activeCamera = freeCamera;
-  scene.activeCamera = followCamera;
+  scene.activeCamera = freeCamera;
+  // scene.activeCamera = followCamera;
+  // createSky(scene);
   createLights(scene);
+  createBadOrb(scene);
+  createGoodOrb(scene, -17, 10, 30);
   // createHeroDude(scene);
-  createCylinder(scene);
+  createRingSystem(scene);
   return scene;
 };
+
+function createSky(scene) {
+  var skybox = BABYLON.Mesh.CreateBox("skyBox", 1000.0, scene);
+  var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+  skyboxMaterial.backFaceCulling = false;
+  skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture(
+    "mettle/mettle",
+    scene
+  );
+  skyboxMaterial.reflectionTexture.coordinatesMode =
+    BABYLON.Texture.SKYBOX_MODE;
+  skyboxMaterial.disableLighting = true;
+  skybox.material = skyboxMaterial;
+}
 
 function CreateGround(scene) {
   var ground = new BABYLON.Mesh.CreateGroundFromHeightMap(
     "ground",
-    "images/maze.png",
-    500,
-    500,
+    "images/final.png",
+    800,
+    800,
     100,
     0,
-    50,
+    10,
     scene,
     false,
     OnGroundCreated
@@ -207,11 +224,20 @@ function createLights(scene) {
     new BABYLON.Vector3(-0.1, -1, 0),
     scene
   );
+  light0.intensity = 0.0;
+  light0.intensity = 0.3;
   var light1 = new BABYLON.DirectionalLight(
     "dir1",
     new BABYLON.Vector3(-1, -1, 0),
     scene
   );
+  light1.intensity = 0.3;
+  var light2 = new BABYLON.HemisphericLight(
+    "light1",
+    new BABYLON.Vector3(0, 1, 0),
+    scene
+  );
+  light2.intensity = 0.5;
 }
 
 function createFollowCamera(scene, target) {
@@ -256,27 +282,103 @@ function createUniversalCamera(scene) {
   return camera;
 }
 
-function createCylinder(scene) {
-  BABYLON.SceneLoader.ImportMesh("", "./", "thickCylinder.glb", scene, function (meshes, particleSystems, skeletons) {
-    // do something with th
-    meshes[0].position = new BABYLON.Vector3(1, 2, 37)
-    meshes[0].scaling = new BABYLON.Vector3(15, 15, 15)
-    console.log(meshes[0].position)
-  });
-  
-  var m = BABYLON.MeshBuilder.CreateBox("bounds", {height: 20, width: 8, depth: 13}, scene);
-  // m.scaling.copyFrom(size);
-  m.position = new BABYLON.Vector3(14, 2, 36);
-  // m.visibility = 0.5;
-  m.checkCollisions = true;
-  m.visibility = false
+function createBadOrb(scene) {
+  BABYLON.SceneLoader.ImportMesh(
+    "",
+    "./",
+    "coronaOrb.babylon",
+    scene,
+    function (meshes, particleSystems, skeletons) {
+      // do something with th
+      meshes[0].position = new BABYLON.Vector3(50, 10, 30);
+      meshes[0].scaling = new BABYLON.Vector3(0.15, 0.15, 0.15);
+      // meshes[0].rotation.y = 3.129;
+      var coronaOrbMaterial = new BABYLON.StandardMaterial(
+        "badOrbMaterial",
+        scene
+      );
+      coronaOrbMaterial.diffuseTexture = new BABYLON.Texture(
+        "images/coronadiffuse.png",
+        scene
+      );
+      meshes[0].material = coronaOrbMaterial;
+    }
+  );
+}
 
-  var m = BABYLON.MeshBuilder.CreateBox("bounds", {height: 20, width: 8, depth: 13}, scene);
+function createGoodOrb(scene, x, y, z) {
+  var i = 0;
+  var orbArray = [];
+  while (i < 11) {
+    BABYLON.SceneLoader.ImportMesh("", "./", "goodOrbTho.glb", scene, function (
+      meshes,
+      particleSystems,
+      skeletons
+    ) {
+      // -17, 10, 30
+      meshes[0].scaling = new BABYLON.Vector3(-0.055, 0.055, 0.055);
+      meshes[0].position.x = x;
+      meshes[0].position.y = y;
+      meshes[0].position.z += z;
+      orbArray.push(meshes[0]);
+    });
+    i++;
+  }
+  console.log(orbArray.position.z);
+  // orbArray.forEach((orb, i) => {
+  //   orb.position.z += i;
+  // });
+  return orbArray;
+}
+
+function createRingSystem(scene) {
+  BABYLON.SceneLoader.ImportMesh(
+    "",
+    "./",
+    "ringSystem.babylon",
+    scene,
+    function (meshes, particleSystems, skeletons) {
+      // do something with th
+      meshes[0].position = new BABYLON.Vector3(-10, 0.5, 30);
+      meshes[0].scaling = new BABYLON.Vector3(35, 25, 17);
+      meshes[0].rotation.y = 3.129;
+      var ringMaterial = new BABYLON.StandardMaterial(
+        "woodenRingMaterial",
+        scene
+      );
+      ringMaterial.diffuseTexture = new BABYLON.Texture(
+        "images/wood.jpg",
+        scene
+      );
+      meshes[0].material = ringMaterial;
+    }
+  );
+
+  var m = BABYLON.MeshBuilder.CreateBox(
+    "ringbounder1",
+    { height: 70, width: 25, depth: 285 },
+    scene
+  );
   // m.scaling.copyFrom(size);
-  m.position = new BABYLON.Vector3(-12, 2, 36);
-  // m.visibility = 0.5;
+  m.position = new BABYLON.Vector3(20, 2, 157);
+  m.visibility = 0.5;
   m.checkCollisions = true;
-  m.visibility = false
+  m.rotation.y = (1 * Math.PI) / 180;
+  // m.visibility = false;
+
+  var m = BABYLON.MeshBuilder.CreateBox(
+    "ringbounder1",
+    { height: 70, width: 25, depth: 285 },
+    scene
+  );
+  // m.scaling.copyFrom(size);
+  m.position = new BABYLON.Vector3(-42, 2, 157);
+  m.visibility = 0.5;
+  m.checkCollisions = true;
+  // m.rotation.z = 0.14;
+  m.rotation.y = -((2 * Math.PI) / 180);
+  // m.rotate.x = 1
+  // m.visibility = false;
 }
 
 function createHeroDude(scene) {
@@ -364,9 +466,8 @@ function createTank() {
   tankMaterial.emissiveColor = new BABYLON.Color3.Blue();
   tank.material = tankMaterial;
   tank.position.y += 2;
-  tank.position.z += -20;
-  console.log(tank.position)
-  tank.speed = 3;
+  tank.position.z += -380;
+  tank.speed = 2.0;
   tank.frontVector = new BABYLON.Vector3(0, 0, 1);
   tank.canFireCannonBalls = true;
   tank.canFireLaser = true;
@@ -396,7 +497,7 @@ function createTank() {
       }
     }
     if (isAPressed) {
-      tank.rotation.y -= 0.08;
+      tank.rotation.y -= 0.06;
       tank.frontVector = new BABYLON.Vector3(
         Math.sin(tank.rotation.y),
         0,
@@ -404,7 +505,7 @@ function createTank() {
       );
     }
     if (isDPressed) {
-      tank.rotation.y += 0.08;
+      tank.rotation.y += 0.06;
       tank.frontVector = new BABYLON.Vector3(
         Math.sin(tank.rotation.y),
         0,
@@ -452,20 +553,20 @@ function createTank() {
     );
     cannonBall.actionManager = new BABYLON.ActionManager(scene);
 
-    scene.dudes.forEach((dude) => {
-      cannonBall.actionManager.registerAction(
-        new BABYLON.ExecuteCodeAction(
-          {
-            trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger,
-            parameter: dude.Dude.bounder,
-          },
-          () => {
-            dude.Dude.bounder.dispose();
-            dude.dispose();
-          }
-        )
-      );
-    });
+    // scene.dudes.forEach((dude) => {
+    //   cannonBall.actionManager.registerAction(
+    //     new BABYLON.ExecuteCodeAction(
+    //       {
+    //         trigger: BABYLON.ActionManager.OnIntersectionEnterTrigger,
+    //         parameter: dude.Dude.bounder,
+    //       },
+    //       () => {
+    //         dude.Dude.bounder.dispose();
+    //         dude.dispose();
+    //       }
+    //     )
+    //   );
+    // });
 
     setTimeout(function () {
       cannonBall.dispose();
